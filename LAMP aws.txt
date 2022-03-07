@@ -1,0 +1,213 @@
+
+#### Create an Ubuntu 20.04 EC2 Server on AWS
+Step 1: Create an EC2 Server
+
+Step 2: Create an elastic IP
+
+Step 3: Connect EC2 Instance to an elastic IP
+
+Step 4: Create a Hosted Zone on Route 53
+
+Step 5: Connect your EC Instance to your domain
+
+#### Login into EC2 Instance on terminal using SSH
+cd /working/directory/
+ssh -i "keyfile_name.pem" ubuntu@ip_address
+
+#### Install LAMP Stack on Ubuntu Instance on AWS
+Install Apache2
+Step 1: Update Software Packages
+    sudo apt update
+    sudo apt upgrade
+---
+Step 2: Install Apache Web Server
+    sudo apt install -y apache2 apache2-utils
+
+    After it’s installed, Apache should be automatically started. Check its status with systemctl.
+    sudo systemctl status apache2
+
+    If it’s not running, use systemctl to start it.
+    sudo systemctl start apache2
+
+    It’s also a good idea to enable Apache to automatically start at system boot time.
+    sudo systemctl enable apache2
+
+    Check Apache version:
+    apache2 -v
+
+    Now we need to set www-data (Apache user) as the owner of document root (otherwise known as web root). By default it’s owned by the root user.
+    sudo chown www-data:www-data /var/www/ -R
+
+    Check if DNS is resolved
+    sudo apache2ctl -t
+
+    To solve this problem, we can set a global ServerName in Apache. Use the Nano command-line text editor to create a new configuration file.
+    sudo nano /etc/apache2/conf-available/servername.conf
+
+    Add the following line in this file.
+    ServerName localhost
+
+    Then enable this config file.
+    sudo a2enconf servername.conf
+
+    Reload Apache for the change to take effect.
+    sudo systemctl reload apache2
+
+    Check if DNS again
+    sudo apache2ctl -t
+---
+Step 3: Install MariaDB Database Server
+    Enter the following command to install MariaDB on Ubuntu 20.04.
+    sudo apt install mariadb-server mariadb-client
+
+    After it’s installed, MariaDB server should be automatically started. Use systemctl to check its status.
+    systemctl status mariadb
+
+    If it’s not running, start it with this command:
+    sudo systemctl start mariadb
+
+    To enable MariaDB to automatically start at boot time, run
+    sudo systemctl enable mariadb
+
+    Now run the post-installation security script.
+    sudo mysql_secure_installation
+
+    When it asks you to enter MariaDB root password, press Enter key as the root password isn’t set yet. Then enter y to set the root password for MariaDB server.
+
+    Press enter (yes) in the next 4 questions
+
+    Run the following command to login without providing MariaDB root password.
+    sudo mariadb -u root
+    
+    To exit, run
+    exit;
+    
+    Check MariaDB server version information.
+    mariadb --version
+
+---
+Step 4: Install PHP7.4
+    Enter the following command to install PHP7.4 and some common PHP modules.
+    sudo apt install php7.4 php-common php7.4-readline php7.4-opcache php7.4-mbstring php7.4-bcmath php7.4-xml php7.4-mysql php7.4-common php7.4-gd php7.4-json php7.4-cli php7.4-curl php7.4-zip libapache2-mod-php7.4 php-imagick
+
+    Enable the Apache php7.4 module then restart Apache Web server.
+    sudo a2enmod php7.4
+    sudo systemctl restart apache2
+
+    Check PHP version information.
+    php --version
+
+    To test PHP scripts with Apache server, we need to create a info.php file in the document root directory.
+    sudo nano /var/www/html/phpinfo.php
+
+    Paste the following PHP code into the file.
+    <?php phpinfo(); ?>
+
+    How to Run PHP-FPM with Apache
+    Disable the Apache PHP7.4 module.
+    sudo a2dismod php7.4
+
+    Install PHP-FPM.
+    sudo apt install php7.4-fpm
+
+    Enable proxy_fcgi and setenvif module.
+    sudo a2enmod proxy_fcgi setenvif
+
+    Enable the /etc/apache2/conf-available/php7.4-fpm.conf configuration file.
+    sudo a2enconf php7.4-fpm
+
+    Restart Apache for the changes to take effect.
+    sudo systemctl restart apache2
+
+    Delete info.php file now to prevent prying eyes.
+    sudo rm /var/www/html/phpinfo.php
+---
+########
+Properly Enable HTTPS on Apache with Let’s Encrypt on Ubuntu
+
+
+1. Create CAA Record for Your Domain Name
+    example.com. IN CAA 0 issue "letsencrypt.org"
+
+    You can also use iodef to make CA report malicious certificate issue request to your email address.
+    example.com. IN CAA 0 iodef "mailto:your-email-address"
+
+    You can use the following dig command to check your CAA record.
+    dig example.com CAA
+
+2. Installing Let’s Encrypt Client (Certbot) on Ubuntu
+    sudo apt install software-properties-common
+    sudo add-apt-repository ppa:certbot/certbot
+    sudo apt update
+    sudo apt install certbot python3-certbot-apache
+
+    To check version number, run
+    certbot --version
+
+3. Using Apache Plugin to Enable HTTPS
+    sudo certbot --apache --agree-tos --redirect --uir --hsts --staple-ocsp --must-staple -d *.example.com,example.com --email you@example.com
+
+    Certbot client creates /etc/apache2/sites-enabled/example.com-le-ssl.conf
+
+4. Testing Your SSL Certificate
+    Go to https://www.ssllabs.com to test your SSL certificate and configuration.
+
+5. Redirecting WWW to Non-WWW (Or Vice-Versa)
+    Edit your virtual host file. (Not the SSL virtual host)
+    sudo nano /etc/apache2/sites-enabled/example.com.conf
+
+    To redirect to www or non-www domain, you need to change the last line. Replace %{SERVER_NAME} with your preferred domain version like below. (www domain)
+    RewriteRule ^ https://www.example.com%{REQUEST_URI} [END,NE,R=permanent]
+
+    If you prefer non-www domain, change it to the following.
+    RewriteRule ^ https://example.com%{REQUEST_URI} [END,NE,R=permanent]
+    Then save and close the file. 
+
+    We will also need to edit the SSL virtual host.
+    sudo nano /etc/apache2/sites-enabled/example.com-le-ssl.conf
+    Add the following lines above the closing </VirtualHost> tag to redirect non-www to www domain.
+    RewriteEngine on
+    RewriteCond %{SERVER_NAME} =example.com
+    RewriteRule ^ https://www.example.com%{REQUEST_URI} [END,NE,R=permanent]
+
+    If you want to redirect www to non-www domain, add the following lines instead.
+    RewriteEngine on
+    RewriteCond %{SERVER_NAME} =www.example.com
+    RewriteRule ^ https://example.com%{REQUEST_URI} [END,NE,R=permanent]
+    Save and close the file.
+
+    Reload Apache service
+    sudo systemctl reload apache2
+
+6. How to Disable TLSv1 and TLSv1.1
+    TLSv1 and TLSv1.1 are no longer considered secure. To disable them, edit the Let’s Encrypt SSL options configuration file.
+    sudo nano /etc/letsencrypt/options-ssl-apache.conf
+
+    Find the following line, which disables SSLv2 and SSLv3 by default.
+    SSLProtocol             all -SSLv2 -SSLv3
+
+    Change it to the following to also disable TLSv1.0 and TLSv1.1.
+    SSLProtocol             all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+    Save and close the file. 
+    
+    Restart Apache.
+    sudo systemctl restart apache2
+
+7. Certificate Auto Renewal
+    To automatically renew Let’s Encrypt certificate, simply edit root user’s crontab file.
+    sudo crontab -e
+
+    Then add the following line at the bottom.
+    @daily certbot renew --quiet && systemctl reload apache2
+    --quiet flag will suppress normal messages. 
+    
+    If you want to receive error messages, then add the following line at the beginning of crontab file.
+    MAILTO=your-email-address
+
+    Restart Apache.
+    sudo systemctl restart apache2
+---
+########
+
+How to install LAMP Stack on Ubuntu 20.4.txt
+Displaying How to install LAMP Stack on Ubuntu 20.4.txt.

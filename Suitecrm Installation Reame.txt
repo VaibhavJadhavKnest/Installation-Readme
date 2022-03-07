@@ -1,0 +1,632 @@
+Step 1: Create an EC2 Server
+Ubuntu Server 20.04 LTS (HVM), SSD Volume Type - ami-0851b76e8b1bce90b (64-bit x86) / ami-0491e5015eb6e7a9b (64-bit Arm)
+Step 2: Create an elastic IP
+Step 3: Connect EC2 Instance to an elastic IP
+Step 4: Create a Hosted Zone on Route 53
+Step 5: Connect your EC Instance to your domain
+
+#### Login into EC2 Instance on terminal using SSH
+cd /working/directory/
+ssh -i "keyfile_name.pem" ubuntu@ip_address
+
+#### Install LAMP Stack on Ubuntu Instance on AWS-
+https://www.digitalocean.com/community/tutorials/how-to-install-php-7-4-and-set-up-a-local-development-environment-on-ubuntu-20-04
+sudo apt -y install software-properties-common
+
+sudo apt-get update
+
+sudo apt -y install php7.4
+
+php -v
+
+sudo apt-get install php7.4-PACKAGE_NAME
+
+sudo apt-get install -y php7.4-cli php7.4-json php7.4-common php7.4-mysql php7.4-zip php7.4-gd php7.4-mbstring php7.4-curl php7.4-xml php7.4-bcmath
+
+php -m
+
+curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+composer --version
+composer init
+sudo apt-get install -y php7.4-cli php7.4-json php7.4-common php7.4-mysql php7.4-zip php7.4-gd php7.4-mbstring php7.4-curl php7.4-xml php7.4-bcmath php7.4-intl php7.4-mysqli php7.4-soap php7.4-xml php7.4-imap
+
+
+
+cd /var/www/html/
+
+
+
+Install Apache2
+Step 1: Update Software Packages
+sudo apt update
+sudo apt upgrade
+---
+Step 2: Install Apache Web Server
+sudo apt install -y apache2 apache2-utils
+
+After it’s installed, Apache should be automatically started. Check its status with systemctl.
+sudo systemctl status apache2
+
+If it’s not running, use systemctl to start it.
+sudo systemctl start apache2
+
+It’s also a good idea to enable Apache to automatically start at system boot time.
+sudo systemctl enable apache2
+
+Check Apache version:
+apache2 -v
+
+Now we need to set www-data (Apache user) as the owner of document root (otherwise known as web root). By default it’s owned by the root user.
+sudo chown www-data:www-data /var/www/ -R
+
+Check if DNS is resolved
+sudo apache2ctl -t
+
+To solve this problem, we can set a global ServerName in Apache. Use the Nano command-line text editor to create a new configuration file.
+sudo nano /etc/apache2/conf-available/dev.knestcrm.conf
+
+Add the following line in this file.
+ServerName localhost
+
+Then enable this config file.
+sudo a2enconf knestcrm.conf
+
+Reload Apache for the change to take effect.
+sudo systemctl reload apache2
+
+Check if DNS again
+sudo apache2ctl -t
+---
+Step 3: Install MariaDB Database Server
+Enter the following command to install MariaDB on Ubuntu 20.04.
+sudo apt install mariadb-server mariadb-client
+nvm install v14.15.1
+
+
+After it’s installed, MariaDB server should be automatically started. Use systemctl to check its status.
+systemctl status mariadb
+
+If it’s not running, start it with this command:
+sudo systemctl start mariadb
+
+To enable MariaDB to automatically start at boot time, run
+sudo systemctl enable mariadb
+
+Now run the post-installation security script.
+sudo mysql_secure_installation
+
+When it asks you to enter MariaDB root password, press Enter key as the root password isn’t set yet. Then enter y to set the root password for MariaDB server.
+
+Press enter (yes) in the next 4 questions
+
+Run the following command to login without providing MariaDB root password.
+sudo mariadb -u root
+
+To exit, run
+exit;
+
+Check MariaDB server version information.
+mariadb --version
+
+---
+Step 4: Install PHP7.4
+Enter the following command to install PHP7.4 and some common PHP modules.
+sudo apt install php7.4 php-common php7.4-readline php7.4-opcache php7.4-mbstring php7.4-bcmath php7.4-xml php7.4-mysql php7.4-common php7.4-gd php7.4-json php7.4-cli php7.4-curl php7.4-zip libapache2-mod-php7.4 php-imagick
+
+Enable the Apache php7.4 module then restart Apache Web server.
+sudo a2enmod php7.4
+sudo systemctl restart apache2
+
+Check PHP version information.
+php --version
+
+To test PHP scripts with Apache server, we need to create a info.php file in the document root directory.
+sudo nano /var/www/html/phpinfo.php
+
+Paste the following PHP code into the file.
+<?php phpinfo(); ?>
+
+How to Run PHP-FPM with Apache
+Disable the Apache PHP7.4 module.
+sudo a2dismod php7.4
+
+Install PHP-FPM.
+sudo apt install php7.4-fpm
+
+Enable proxy_fcgi and setenvif module.
+sudo a2enmod proxy_fcgi setenvif
+
+Enable the /etc/apache2/conf-available/php7.4-fpm.conf configuration file.
+sudo a2enconf php7.4-fpm
+
+Restart Apache for the changes to take effect.
+sudo systemctl restart apache2
+
+Delete info.php file now to prevent prying eyes.
+sudo rm /var/www/html/phpinfo.php
+---
+########
+Properly Enable HTTPS on Apache with Let’s Encrypt on Ubuntu
+
+
+1. Create CAA Record for Your Domain Name
+example.com. IN CAA 0 issue "letsencrypt.org"
+
+You can also use iodef to make CA report malicious certificate issue request to your email address.
+example.com. IN CAA 0 iodef "mailto:your-email-address"
+
+You can use the following dig command to check your CAA record.
+dig example.com CAA
+
+2. Installing Let’s Encrypt Client (Certbot) on Ubuntu
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt update
+sudo apt install certbot python3-certbot-apache
+
+To check version number, run
+certbot --version
+
+3. Using Apache Plugin to Enable HTTPS
+sudo certbot --apache --agree-tos --redirect --uir --hsts --staple-ocsp --must-staple -d *.dev.knestcrm.com,dev.knestcrm.com --email vaibhav.jadhav@knestaluform.in
+sudo certbot --authenticator standalone --installer nginx -d dev.knestcrm.com --pre-hook “service nginx stop” --post-hook “service nginx start”
+
+
+Certbot client creates /etc/apache2/sites-enabled/example.com-le-ssl.conf
+
+4. Testing Your SSL Certificate
+Go to https://www.ssllabs.com to test your SSL certificate and configuration.
+
+5. Redirecting WWW to Non-WWW (Or Vice-Versa)
+Edit your virtual host file. (Not the SSL virtual host)
+sudo nano /etc/apache2/sites-enabled/example.com.conf
+
+To redirect to www or non-www domain, you need to change the last line. Replace %{SERVER_NAME} with your preferred domain version like below. (www domain)
+RewriteRule ^ https://www.example.com%{REQUEST_URI} [END,NE,R=permanent]
+
+If you prefer non-www domain, change it to the following.
+RewriteRule ^ https://example.com%{REQUEST_URI} [END,NE,R=permanent]
+Then save and close the file. 
+
+We will also need to edit the SSL virtual host.
+sudo nano /etc/apache2/sites-enabled/example.com-le-ssl.conf
+Add the following lines above the closing </VirtualHost> tag to redirect non-www to www domain.
+RewriteEngine on
+RewriteCond %{SERVER_NAME} =example.com
+RewriteRule ^ https://www.example.com%{REQUEST_URI} [END,NE,R=permanent]
+
+If you want to redirect www to non-www domain, add the following lines instead.
+RewriteEngine on
+RewriteCond %{SERVER_NAME} =www.example.com
+RewriteRule ^ https://example.com%{REQUEST_URI} [END,NE,R=permanent]
+Save and close the file.
+
+Reload Apache service
+sudo systemctl reload apache2
+
+6. How to Disable TLSv1 and TLSv1.1
+TLSv1 and TLSv1.1 are no longer considered secure. To disable them, edit the Let’s Encrypt SSL options configuration file.
+sudo nano /etc/letsencrypt/options-ssl-apache.conf
+
+Find the following line, which disables SSLv2 and SSLv3 by default.
+SSLProtocol             all -SSLv2 -SSLv3
+
+Change it to the following to also disable TLSv1.0 and TLSv1.1.
+SSLProtocol             all -SSLv2 -SSLv3 -TLSv1 -TLSv1.1
+Save and close the file. 
+
+Restart Apache.
+sudo systemctl restart apache2
+
+7. Certificate Auto Renewal
+To automatically renew Let’s Encrypt certificate, simply edit root user’s crontab file.
+sudo crontab -e
+
+Then add the following line at the bottom.
+@daily certbot renew --quiet && systemctl reload apache2
+--quiet flag will suppress normal messages. 
+
+If you want to receive error messages, then add the following line at the beginning of crontab file.
+MAILTO=your-email-address
+
+Restart Apache.
+sudo systemctl restart apache2
+
+sudo nano /etc/php/8.1/apache2/php.ini
+
+sudo nano /etc/php/7.4/apache2/php.ini
+file_uploads=On
+allow_url_fopen=On
+short_open_tag=On
+memory_limit=256M
+upload_max_filesize=100M
+max_execution_time=360
+[opcache]
+; Determines if Zend OPCache is enabled
+zend_extension=opcache.so
+opcache.enable=1
+
+; The OPcache shared memory storage size.
+opcache.memory_consumption=256
+
+; The maximum number of keys (scripts) in the OPcache hash table.
+; Only numbers between 200 and 100000 are allowed.
+opcache.max_accelerated_files=20000
+
+; When disabled, you must reset the OPcache manually or restart the
+; webserver for changes to the filesystem to take effect.
+opcache.validate_timestamps=0
+date.timezone =Asia/Kolkata
+
+opcache.interned_strings_buffer=8
+opcache.revalidate_freq=60
+opcache.enable_cli=1
+
+sudo systemctl restart apache2.service
+sudo systemctl status apache2.service
+service php7.4-fpm reload
+
+sudo mysql -u root -p
+CREATE DATABASE suitecrm;
+CREATE USER 'suitecrm'@'localhost' IDENTIFIED BY 'comsats1234';
+GRANT ALL ON suitecrm.* TO 'suitecrm'@'localhost' IDENTIFIED BY 'comsats1234';
+FLUSH PRIVILEGES;
+EXIT;
+
+sudo apt update
+sudo apt -y upgrade
+sudo apt update
+sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
+curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
+
+sudo apt install npm
+npm install --global yarn
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/master/install.sh | bash
+source ~/.bashrc
+nvm --version
+nvm list-remote
+nvm install v15
+node --version
+sudo apt -y install gcc g++ make
+sudo apt install gnupg2
+curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+sudo apt update && sudo apt install yarn
+yarn -V
+npm i @angular/cli
+npm install -g @angular/cli
+
+sudo scp -i .ssh/Knest-Suit-CRM.pem ubuntu@ec2-3-111-120-246.ap-south-1.compute.amazonaws.com:/home/ubuntu/knestcrm8.zip /mnt/d/Server/
+git --version
+sudo apt update
+sudo apt install libz-dev libssl-dev libcurl4-gnutls-dev libexpat1-dev gettext cmake gcc
+
+mkdir tmp
+cd /tmp
+
+curl -o git.tar.gz https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.26.2.tar.gz
+
+tar -zxf git.tar.gz
+
+cd git-*
+
+make prefix=/usr/local all
+sudo make prefix=/usr/local install
+
+exec bash
+
+git --version
+
+git config --global user.name "VaibhavJadhavKnest"
+git config --global user.email "vaibhav.jadhav@knestaluform.in"
+
+git config --list
+git remote add origin ssh://git@git.domain.tld/crmdeploy.git
+
+
+github token
+sudo git clone https://github.com/VaibhavJadhavKnest/crmdeploy.git
+sudo git clone https://github.com/salesagility/SuiteCRM-Core.git
+sudo git clone https://github.com/VaibhavJadhavKnest/crmtool.git
+
+VaibhavJadhavKnest
+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
+
+
+git branch -a
+git checkout -b develop
+git checkout master
+ls
+git checkout master
+
+git branch
+git merge develop --no-ff
+git remote add origin ssh://git@git.domain.tld/crmdeploy.git
+git remote -v origin ssh://git@git.domain.tld/crmdeploy.git
+
+sudo dpkg-reconfigure tzdata
+select timezone in ec2
+SET GLOBAL time_zone = 'Asia/Kolkata';
+
+SELECT name FROM mysql.time_zone_name WHERE name LIKE '%Asia/Kolkata%';
+SET GLOBAL time_zone='Asia/Kolkata';
+SELECT @@time_zone;
+cat /usr/share/zoneinfo/Asia/Kolkata
+
+
+sudo apt install php7.3 libapache2-mod-php7.3 php7.3-common
+sudo apt install php7.3-mysql php7.3-gmp php7.3-curl php7.3-intl
+sudo apt install php7.3-mbstring php7.3-xmlrpc php7.3-gd php7.3-bcmath
+sudo apt install php7.3-imap php7.3-xml php7.3-cli php7.3-zip
+Run composer install in legacy directory (/public/legacy)
+yarn install
+Include /etc/apache2/conf-available/ php8.0-fpm.conf
+apt install libc-client2007e libzip4 mlock php7.3-imap php7.3-zip php7.3-imap php7.3-zip
+
+apt install php7.3-gd php7.3-curl php7.3-mbstring php7.3-xml php7.3-dom php7.3-intl
+
+
+
+
+sudo apt install php8.0 libapache2-mod-php8.0 php8.0-common
+sudo apt install -y php8.0-mysql php8.0-gmp php8.0-curl php8.0-intl
+sudo apt install -y php8.0-mbstring php8.0-xmlrpc php8.0-gd php8.0-bcmath
+sudo apt install -y php8.0-imap php8.0-xml php8.0-cli php8.0-zip
+
+sudo apt install -y php8.0-mbstring  
+./vendor/bin/pscss -s compressed ./public/legacy/themes/suite8/css/Dawn/style.scss > ./var/www/html/public/legacy/themes/suite8/css/Dawn/style.css
+
+
+sudo apt install -y php7.4-curl
+npm install -g @angular/cli@12
+
+#Example
+./bin/console suitecrm:app:install -u "admin" -p "admin" -U "suitecrm" -P "comsats1234" -H "localhost" -N "suitecrm" -S "http://knestcrm.com/" -d "no"./bin/console suitecrm:app:install -u "admin" -p "admin" -U "suitecrm" -P "comsats1234" -H "localhost" -N "suitecrm" -S "http://knestcrm.com/" -d "no"
+
+
+./vendor/bin/pscss -f compressed ./public/legacy/themes/suite8/css/Dawn/style.scss > ./public/legacy/themes/suite8/css/Dawn/style.css
+./vendor/bin/pscss -f compressed ./public/legacy/custom/themes/Knesttheam/css/Dawn/style.scss > ./public/legacy/custom/themes/Knesttheam/css/Dawn/style.css
+sudo apt install -y php7.2-curl
+
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'root';
+
+
+FLUSH PRIVILEGES;
+
+array (
+'db_host_name' => 'localhost',
+'db_host_instance' => '',
+'db_user_name' => 'suitecrm',
+'db_password' => 'comsats1234',
+'db_name' => 'suitecrm',
+'db_type' => 'mysql',
+'db_port' => '3306',
+'db_manager' => 'MysqliManager',
+'collation' => NULL,
+'charset' => NULL,
+),
+
+
+'db_host_name' => 'ec2-65-1-23-241.ap-south-1.compute.amazonaws.com,
+
+'db_user_name' => '<your_db_server_user>',
+'db_password' => '<your_db_server_user_password>',
+'db_name' => '<your_db_name>',
+'db_type' => 'mysql',
+
+host_name = 'ec2-65-1-23-241.ap-south-1.compute.amazonaws.com,
+65.1.23.241
+host_user= ubuntu,
+'db_root_user_name' => 'root',
+'db_root_password' => 'root',
+'db_user_name' => 'suitecrm',
+'db_password' => 'comsats1234',
+'db_name' => 'suitecrm',
+'db_type' => 'mysql',
+'db_port' => '3306',
+
+array (
+'db_host_name' => 'localhost',
+'db_host_instance' => '',
+'db_user_name' => 'root',
+'db_password' => 'Admin@vj96',
+'db_name' => 'testing',
+'db_type' => 'mysql',
+'db_port' => '3306',
+'db_manager' => 'MysqliManager',
+'charset' => NULL,
+'collation' => NULL,
+
+
+
+CREATE USER  'ubuntu'@'localhost' IDENTIFIED BY 'root';
+GRANT ALL ON suitecrm.* to 'ubuntu'@'3.109.190.218' IDENTIFIED BY 'root' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+EXIT;
+
+mysql -u root -p
+
+mysql -h ec2-65-1-23-241.ap-south-1.compute.amazonaws.com -P 3306 -u root -p
+mysql -u ubuntu -h 65.1.23.241 -p
+sudo ufw allow from 3.109.190.218
+sudo ufw allow from 3.109.190.218 to any port 22
+
+
+sudo ufw allow from 3.109.190.218 to any port 3306
+==================
+
+Knest_Mysql_DB
+65.1.23.241
+sg-0dc393923f8df2ba6
+sg-0dc393923f8df2ba6 (launch-wizard-7)
+
+Knest_CRM_8.0.3_App
+3.109.190.218
+sg-053273fea8c1f04ee
+sg-053273fea8c1f04ee (launch-wizard-8)
+
+
+==============set mariadb timezone================
+sudo apt update
+sudo apt install tzdata
+ls /usr/share/zoneinfo/
+cat /usr/share/zoneinfo/Asia/Kolkata
+mysql_tzinfo_to_sql /usr/share/zoneinfo/ > ~/zoneinfo.sql
+ls -lh
+cat ~/zoneinfo.sql | sudo mysql -u root mysql -p
+sudo mysql -u root -p
+SELECT @@time_zone;
+SELECT name FROM mysql.time_zone_name;
+SELECT name FROM mysql.time_zone_name WHERE name LIKE '%Asia/Kolkata%';
+SET GLOBAL time_zone='Asia/Kolkata';
+SELECT @@time_zone;
+SHOW GLOBAL VARIABLES LIKE 'time_zone';
+SET time_zone = 'Asia/Kolkata';
+[mysqld_safe]
+timezone='Asia/Kolkata'
+export TZ='Asia/Kolkata'
+service mysql start
+sudo timedatectl set-timezone Asia/Kolkata
+
+CREATE TABLE dbto.table_name like dbfrom.table_name;
+insert into  dbto.table_name select * from dbfrom.table_name;
+
+insert into  knestcrm.aow_workflow select * from suitecrm.aow_workflow;
+insert into  knestcrm.aow_actions select * from suitecrm.aow_actions;
+insert into  knestcrm.aow_conditions select * from suitecrm.aow_conditions;
+
+
+
+==================================new database create mysql========
+sudo mysql -u root -p
+CREATE DATABASE knestcrm;
+CREATE USER 'knestcrm'@'localhost' IDENTIFIED BY 'root';
+GRANT ALL ON knestcrm.* TO 'knestcrm'@'localhost' IDENTIFIED BY 'root';
+FLUSH PRIVILEGES;
+EXIT;
+
+mysqldump -u suitecrm -p suitecrm > suitecrm.sql
+mysqldump -u knestcrm -p knestcrm > knestcrm.sql
+mysql -u username -p new_database < knestcrm.sql
+
+
+
+knestcrmdatabase.cn8knazgsgxu.ap-south-1.rds.amazonaws.com
+mysql -h knestcrmdatabase.cn8knazgsgxu.ap-south-1.rds.amazonaws.com -u knestcrm -p 
+
+mysql -h knestcrmdatabase.cn8knazgsgxu.ap-south-1.rds.amazonaws.com -u knestcrm -p knestcrm < suitecrm.sql
+
+db_name=knestcrm_database
+db_user=knestcrm
+db_pass=knestcrmroot
+
+'db_host_name' => 'localhost',
+'db_host_instance' => '',
+'db_user_name' => 'knestcrm',
+'db_password' => 'root',
+'db_name' => 'knestcrm',
+'db_type' => 'mysql',
+'db_port' => '',
+
+
+'db_host_name' => 'knestcrmdatabase.cn8knazgsgxu.ap-south-1.rds.amazonaws.com',
+'db_host_instance' => 'knestcrmdatabase.cn8knazgsgxu.ap-south-1.rds.amazonaws.com',
+'db_user_name' => 'knestcrm',
+'db_password' => 'knestcrmroot',
+'db_name' => 'knestcrm',
+'db_type' => 'mysql',
+'db_port' => '3306',
+'db_manager' => 'MysqliManager',
+'collation' => NULL,
+'charset' => NULL,
+
+========================bitbucket deployement====================
+
+https://bitbucket.org/knest1/knestcrm-8.0.3-03-03-22/src/master/
+knest1-admin
+rNJdDcwWxXsrSj4RVSUU
+
+===================================
+
+
+======================git bitbucket=========================================================================
+Set up User name and email - displayed in git history.
+====
+
+git config --global user.name "Vaibhav Jadhav"
+git config --global user.email "Vaibhav.jadhav@knestaluform.in"
+==========================
+
+Change Git Default Editor.
+====
+git config --global core.editor emacs
+git config --global core.editor nano
+git config --global core.editor notepad
+git config --global core.editor '"C:/Program Files/Notepad++/notepad++.exe"'
+
+=========================
+
+Check your Settings.
+====
+git config --list
+=========================
+
+Initializing a Repository in an Existing Directory.
+=====
+git init
+=========================
+
+Clone your remote repository locally.
+====
+git clone
+=========================
+
+Fetch modifications.
+====
+git pull
+git fetch --all
+=========================
+
+View Git status and your local changes.
+====
+git status
+=========================
+
+Add all files & commit.
+====
+git add .
+or 
+git add -A
+
+git commit -m "My Commit Message"
+
+==========================
+
+Local branch - track a remote branch
+=====
+git branch --set-upstream-to master origin/master
+==========================
+
+Show local + remote branches
+=====
+git branch -a show remote branches only
+git branch -r delete remote branch
+==========================
+
+Delete Remote Branch
+====
+git push -d remote_name branch_name
+==========================
+
+Delete Local Branch
+====
+git branch -d branch_name
+==========================
+
+
+
+
+
+
+
+

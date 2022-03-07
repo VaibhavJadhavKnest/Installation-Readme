@@ -1,0 +1,90 @@
+Daily Updates:-
+1. What I did yesterday(25/02/2022)->
+a. Battery ordering process & discussion with the vendor.
+b. CRM customization workflow.
+c. Preparation for onsite prop trials. Batteries, debug old code to fix sleep issues.
+2. What's my goal for today? ->
+a. Preparation for onsite prop trials - code fix & upload new code in all props & tabletop test.
+b. Panel final assembly & make it ready for testing.
+c. CRM customization workflow.
+3. Where I'm stuck and need help to move forward? ->
+No.
+
+===========================================
+Daily Updates:-
+1. What I did yesterday(26/02/2022)->
+a. CRM customization workflow.
+b. Firmware changes to fix sleep issues .
+2. What's my goal for today? ->
+a. Firmware changes in all props & tabletop test.
+b. CRM customization workflow.
+3. Where I'm stuck and need help to move forward? ->
+Waiting from Accounts to complete Payment for battery vendor.
+
+===========================================
+Daily Updates:-
+*1. What I did yesterday(28/02/2022)->*
+a. Firmware changes in all props & tabletop test.
+*2. What's my goal for today? ->*
+a. Complete Firmware Changes in HUB, PROP & Table top Testing.
+b. CRM Customization with team members.
+*3. Where I'm stuck and need help to move forward? ->*
+Payment of battery vendor need to be done, not yet completed after followup.
+
+===========================================
+Daily Updates:-
+*1. What I did yesterday(1/03/2022)->*
+a. Firmware changes in all props & tabletop test completed.
+b. CRM Quote Customization with team members.
+*2. What's my goal for today? ->*
+a. Complete all PROP waterproofing for on site Testing.
+b. Firmware changes in hub for Over the air update.
+c. CRM Quote & Invoice Customization with team members.
+*3. Where I'm stuck and need help to move forward? ->*
+No.
+===========================================
+Daily Updates:-
+*1. What I did yesterday(02/03/2022)->*
+a. Complete all PROP waterproofing for on site Testing-PCB waterproofing done, sprayed plastic cote.
+b. Firmware changes in hub for Over the air update-not worked, sleep mode efficiently working by changed logic.
+c. CRM Quote & Invoice Customization with team members.
+*2. What's my goal for today? ->*
+a. Firmware changes in hub for Over the air update.
+b. CRM Quote & Invoice Customization with team members.
+*3. Where I'm stuck and need help to move forward? ->*
+No. 
+Communicating with Mr. Vinchu for on site trials.
+Sim & Wifi router purchasing is in process.
+===========================================
+Daily Updates:-
+*1. What I did yesterday(03/03/2022)->*
+a. Firmware changes in hub for Over the air update.
+b. CRM Quote & Invoice Customization with team members.
+*2. What's my goal for today? ->*
+a. All Prop packing after reprogramming & site visit for install process.
+b. CRM Quote & Invoice Customization with team members.
+*3. Where I'm stuck and need help to move forward? ->*
+No. 
+===========================================
+Daily Updates:-
+*1. What I did yesterday(04/03/2022)->*
+a. Firmware changes in hub for Over the air update.
+b. CRM Quote & Invoice Customization with team members.
+*2. What's my goal for today? ->*
+a. All Prop packing after reprogramming & site visit for install process.
+*3. Where I'm stuck and need help to move forward? ->*
+No. 
+===========================================
+Daily Updates:-
+*1. What I did yesterday(05/03/2022)->*
+a. All Prop packing & on site installation.
+b. CRM Quote & Invoice Customization with team members.
+*2. What's my goal for today? ->*
+a.Site visit & monitor issues if any.
+b. CRM discussion with Sales head & share current version for initial testing.
+C. Preparation for new prop head PCB .
+*3. Where I'm stuck and need help to move forward? ->*
+Need help from accounts team in vendors payment process for new prop head manufactoring.
+===========================================
+
+
